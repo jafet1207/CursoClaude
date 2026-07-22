@@ -76,117 +76,55 @@ Por separado, la dueña pidió agregar el cálculo del Impuesto al Valor Agregad
 ## Generales
 
 - Escribir todo el código en inglés.
-- Comentarios únicamente cuando agreguen valor.
-- Evitar código duplicado.
-- Mantener métodos pequeños y con una única responsabilidad.
-- Priorizar claridad sobre complejidad.
-- No dejar código comentado.
-- Eliminar variables y métodos sin uso.
+- Comentarios únicamente cuando agreguen valor (evitar los que describan algo obvio).
+- Evitar código duplicado; eliminar variables y métodos sin uso; no dejar código comentado.
+- Mantener métodos pequeños, con una única responsabilidad, priorizando claridad sobre complejidad.
 - No utilizar valores "hardcodeados"; utilizar constantes o configuración cuando corresponda.
-
----
 
 ## Nomenclatura
 
 ### Variables
 
-- camelCase
-- Nombres descriptivos.
-- Evitar abreviaturas innecesarias.
-
-Correcto
+- camelCase, nombres descriptivos, evitar abreviaturas innecesarias.
 
 ```csharp
 decimal totalAmount;
 string customerName;
 ```
 
-Incorrecto
-
-```csharp
-decimal t;
-string nm;
-```
-
----
-
 ### Constantes
 
-- PascalCase o UPPER_CASE según el estándar del proyecto.
-- Declararlas como readonly o const cuando corresponda.
+- PascalCase o UPPER_CASE según el estándar del proyecto; declararlas como readonly o const.
 
 ```csharp
 const int MaxItems = 100;
 ```
 
----
-
 ### Métodos
 
-- PascalCase.
-- Deben comenzar con un verbo.
-
-Ejemplos
+- PascalCase, deben comenzar con un verbo.
 
 ```csharp
 GetProducts()
 CreateOrder()
-ValidatePrice()
 CalculateDiscount()
 ```
 
----
-
 ### Clases
 
-- PascalCase.
-- Sustantivos.
-
-```csharp
-ProductService
-OrderRepository
-PriceValidator
-```
-
----
+- PascalCase, sustantivos (`ProductService`, `OrderRepository`).
 
 ### Interfaces
 
-- Prefijo I.
-
-```csharp
-IProductRepository
-IPriceService
-```
-
----
+- Prefijo I (`IProductRepository`).
 
 ### Enumeraciones
 
-- PascalCase.
-
-```csharp
-OrderStatus
-PriceType
-```
-
-Valores:
-
-```csharp
-Pending
-Completed
-Cancelled
-```
-
----
+- PascalCase, valores también en PascalCase (`OrderStatus.Pending`).
 
 ## Formato
 
-- Indentación de 4 espacios.
-- Una sola instrucción por línea.
-- Llaves siempre en líneas separadas.
-
-Correcto
+- Indentación de 4 espacios, una sola instrucción por línea, llaves siempre en líneas separadas.
 
 ```csharp
 if (isValid)
@@ -195,87 +133,27 @@ if (isValid)
 }
 ```
 
-Incorrecto
-
-```csharp
-if(isValid){Save();}
-```
-
----
-
 ## Métodos
 
-- Máximo recomendado: 40–60 líneas.
-- Evitar más de 3 niveles de anidación.
-- Retornar temprano cuando sea posible.
-
-Correcto
-
-```csharp
-if (customer == null)
-{
-    return;
-}
-```
-
----
+- Máximo recomendado 40–60 líneas, evitar más de 3 niveles de anidación, retornar temprano cuando sea posible.
 
 ## Variables
 
-Declararlas lo más cerca posible de donde se utilizan.
-
-Evitar:
-
-```csharp
-string result;
-
-// muchas líneas...
-
-result = GetValue();
-```
-
-Preferir:
-
-```csharp
-string result = GetValue();
-```
-
----
+- Declararlas lo más cerca posible de donde se utilizan, en vez de declarar arriba y asignar después.
 
 ## Comentarios
 
-Evitar comentarios que describan código obvio.
-
-Incorrecto
-
-```csharp
-// Incrementa i
-i++;
-```
-
-Correcto
+- Evitar comentarios que describan código obvio; sí explicar el porqué de una decisión no evidente.
 
 ```csharp
 // Se recalcula el precio porque el proveedor cambió la tarifa.
 ```
-
----
 
 ## Manejo de errores
 
 - No capturar excepciones para ignorarlas.
 - Registrar siempre los errores importantes.
 - Lanzar excepciones con mensajes claros.
-
-Incorrecto
-
-```csharp
-catch
-{
-}
-```
-
-Correcto
 
 ```csharp
 catch (Exception ex)
@@ -285,23 +163,13 @@ catch (Exception ex)
 }
 ```
 
----
-
 ## SQL
 
-- Utilizar consultas SARGables.
-- Evitar SELECT *.
-- Nombrar columnas explícitamente.
-- Utilizar índices adecuados.
-- Evitar cursores cuando exista alternativa.
-
----
+- Utilizar consultas SARGables, evitar SELECT *, nombrar columnas explícitamente, usar índices adecuados y evitar cursores cuando exista alternativa.
 
 ## APIs
 
 - Utilizar nombres REST.
-
-Correcto
 
 ```
 GET    /products
@@ -310,78 +178,30 @@ PUT    /products/{id}
 DELETE /products/{id}
 ```
 
----
-
 ## JavaScript / TypeScript
 
-- Utilizar const siempre que sea posible.
-- Utilizar let únicamente cuando cambie el valor.
-- Evitar var.
-
----
+- Utilizar const siempre que sea posible; let únicamente cuando cambie el valor; evitar var.
 
 ## React
 
-- Componentes en PascalCase.
-- Hooks al inicio del componente.
-- Evitar lógica compleja dentro del JSX.
-- Componentes pequeños y reutilizables.
-
----
+- Componentes en PascalCase, hooks al inicio del componente, evitar lógica compleja dentro del JSX, componentes pequeños y reutilizables.
 
 ## CSS
 
-- Utilizar nombres descriptivos.
-- Evitar estilos inline.
-- Agrupar reglas relacionadas.
-- Mantener un orden consistente.
-
----
+- Nombres descriptivos, evitar estilos inline, agrupar reglas relacionadas, mantener un orden consistente.
 
 ## Git
 
-Commits en presente.
-
-Correcto
-
-```
-Add product validation
-Fix login bug
-Update API endpoint
-```
-
-Evitar
-
-```
-Fixed
-Changes
-Update stuff
-```
-
----
+- Commits en presente (`Add product validation`, no `Fixed`).
 
 ## Pull Requests
 
-- Una funcionalidad por PR.
-- Descripción clara.
-- Capturas cuando existan cambios visuales.
-- Referenciar el ticket correspondiente.
-
----
+- Una funcionalidad por PR, descripción clara, capturas cuando existan cambios visuales, referenciar el ticket correspondiente.
 
 ## Rendimiento
 
-- Evitar consultas repetidas.
-- Minimizar llamadas a la base de datos.
-- Cachear información cuando aplique.
-- Evitar operaciones dentro de ciclos que puedan realizarse una sola vez.
-
----
+- Evitar consultas repetidas, minimizar llamadas a la base de datos, cachear información cuando aplique, evitar operaciones dentro de ciclos que puedan realizarse una sola vez.
 
 ## Seguridad
 
-- Validar siempre la entrada del usuario.
-- Nunca confiar en datos provenientes del cliente.
-- No exponer información sensible.
-- Utilizar consultas parametrizadas.
-- No almacenar secretos en el código fuente.
+- Validar siempre la entrada del usuario, nunca confiar en datos provenientes del cliente, no exponer información sensible, utilizar consultas parametrizadas, no almacenar secretos en el código fuente.
