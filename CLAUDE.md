@@ -2,10 +2,16 @@
 
 ## Propósito
 
-Este archivo guía a Claude Code al trabajar en este repositorio. El proyecto es un
-ejercicio de práctica: usar Claude Code como asistente para diagnosticar un bug real,
-corregirlo, implementar un nuevo requerimiento y documentar la colaboración con el
-asistente durante ese proceso.
+Este archivo guía a Claude Code al trabajar en cualquiera de los repositorios de este
+curso. Define las reglas de comportamiento del asistente y las convenciones de código
+que deben respetarse de forma transversal en todos los proyectos, sin importar su
+lenguaje, framework o dominio de negocio.
+
+Los proyectos del curso son ejercicios de práctica: usar Claude Code como asistente para
+diagnosticar bugs reales, corregirlos, implementar nuevos requerimientos y documentar la
+colaboración con el asistente durante ese proceso. El contexto de negocio, las tareas
+concretas y la estructura específica de cada ejercicio se describen en la consigna de
+cada proyecto, no en este archivo.
 
 ## El asistente NO debe
 
@@ -28,48 +34,22 @@ asistente durante ese proceso.
 - No introducir cambios que degraden el rendimiento sin advertirlo.
 - No exponer secretos, credenciales o cadenas de conexión en el código.
 
-## Contexto del negocio
+## Contexto de cada proyecto
 
-La Ferretería El Tornillo Feliz es un negocio familiar pequeño. Usa un script en
-Node.js para calcular el total de sus ventas en caja. Un desarrollador junior
-construyó la primera versión, pero desde hace unas semanas los clientes reclaman
-que el total en pantalla "no cuadra" cuando compran grandes cantidades de un mismo
-producto.
-
-Por separado, la dueña pidió agregar el cálculo del Impuesto al Valor Agregado
-(IVA, 13%) sobre el monto de la venta, algo que el script todavía no hace.
-
-## Tareas de este ejercicio
-
-1. Configurar el entorno de trabajo con Claude Code.
-2. Diagnosticar y corregir el error de cálculo del descuento por compra al por mayor.
-3. Implementar el cálculo del IVA (13%) sobre el subtotal ya con descuento aplicado.
-4. Documentar el proceso de colaboración con el asistente (decisiones, prompts
-   relevantes, hallazgos).
-
-## Estructura del proyecto
-
-- [src/carrito.js](src/carrito.js): lógica de cálculo del total de una venta
-  (`calcularTotal`). Único módulo de lógica de negocio.
-- [test/test-carrito.js](test/test-carrito.js): pruebas que describen el
-  comportamiento esperado, incluyendo el caso del descuento por mayoreo y el
-  nuevo requerimiento de IVA.
-- `npm test` ejecuta `node test/test-carrito.js`.
-
-## Reglas de negocio esperadas
-
-- **Descuento por mayoreo**: se aplica un 10% de descuento sobre el subtotal
-  cuando algún producto del carrito se compra en cantidad mayor a 10 unidades
-  (no cuando el carrito tiene más de 10 líneas distintas).
-- **IVA**: se calcula un 13% sobre el subtotal ya con el descuento aplicado, y
-  se suma al total final.
+El contexto de negocio, las tareas específicas, la estructura de carpetas y las reglas de
+negocio esperadas son propios de cada ejercicio y se encuentran en su consigna o
+documentación (por ejemplo, un archivo `README.md` o un documento de consigna dentro del
+repositorio). Antes de empezar, revisar esa documentación para entender el dominio y los
+requerimientos concretos.
 
 ## Convenciones de trabajo
 
-- Antes de dar por resuelta una tarea, correr `npm test` y confirmar que todos
-  los casos pasen.
-- No agregar dependencias externas ni frameworks de pruebas: el proyecto usa
-  únicamente `node:assert` y scripts planos por diseño, dado su tamaño.
+- Antes de empezar, entender la estructura del proyecto, sus scripts y cómo se ejecutan
+  sus pruebas (`package.json`, `README.md`, consigna, etc.).
+- Antes de dar por resuelta una tarea, ejecutar la suite de pruebas del proyecto y
+  confirmar que todos los casos pasen.
+- Respetar las herramientas y el enfoque de pruebas que ya usa el proyecto; no introducir
+  dependencias ni frameworks nuevos sin autorización.
 
 # Convenciones de Código
 
