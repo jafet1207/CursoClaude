@@ -13,6 +13,10 @@ colaboración con el asistente durante ese proceso. El contexto de negocio, las 
 concretas y la estructura específica de cada ejercicio se describen en la consigna de
 cada proyecto, no en este archivo.
 
+## Idioma / Language
+
+- Always answer in English, regardless of the language used in the prompt.
+
 ## El asistente NO debe
 
 - No modificar archivos de prueba (tests) a menos que se solicite explícitamente.
