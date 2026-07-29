@@ -18,7 +18,12 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { buildGraph, computeAllNodeStates } from './graph'
+import {
+  buildGraph,
+  computeAllNodeStates,
+  isNodeWeakened,
+  weakenedPrereqs,
+} from './graph'
 import { DAY_MS } from './srs'
 import type { SkillNode, UserItemState } from './types'
 
@@ -76,5 +81,32 @@ describe('returning after a month away (mastery decay)', () => {
     const monthLater = T0 + 30 * DAY_MS
     const later = computeAllNodeStates(g, states, monthLater)
     expect(later.get('DEPENDENT')!.status).toBe('locked')
+  })
+})
+
+/**
+ * Scope of the same root cause: while node status never dropped out of
+ * "mastered", these two behaviors could not fire at all, so the user report
+ * (one symptom) hid them. They must hold once decay reaches node status.
+ */
+describe('rusty marking (masked by the same bug)', () => {
+  it('a skill earned and then rotted is flagged as weakened, not silently mastered', () => {
+    const states = new Map([['f1', masteredItem('f1')]])
+
+    // Freshly earned: not weakened.
+    expect(isNodeWeakened(FOUNDATION, states, T0)).toBe(false)
+
+    // A month later its retention has decayed below target: weakened.
+    const monthLater = T0 + 30 * DAY_MS
+    expect(isNodeWeakened(FOUNDATION, states, monthLater)).toBe(true)
+  })
+
+  it('a re-locked node points at the rotted prerequisite the user must refresh', () => {
+    const g = graph()
+    const states = new Map([['f1', masteredItem('f1')]])
+    const monthLater = T0 + 30 * DAY_MS
+
+    const toRefresh = weakenedPrereqs(g, 'DEPENDENT', states, monthLater)
+    expect(toRefresh.map((n) => n.id)).toEqual(['FOUNDATION'])
   })
 })

@@ -20,7 +20,7 @@ import type {
   UserNodeState,
   NodeStatus,
 } from './types'
-import { currentMastery, ITEM_MASTERY_TARGET } from './srs'
+import { currentMastery, DAY_MS, ITEM_MASTERY_TARGET } from './srs'
 
 /** A mastered node whose every item interval is ≥ this many days is in the
  * lighter "maintenance" rotation. */
@@ -169,7 +169,7 @@ export function isNodeMastered(
   if (node.items.length === 0) return false
   return node.items.every((itemId) => {
     const state = itemStates.get(itemId)
-    return state !== undefined && currentMastery(state, state.dueDate ?? now) >= ITEM_MASTERY_TARGET
+    return state !== undefined && currentMastery(state, now) >= ITEM_MASTERY_TARGET
   })
 }
 
@@ -288,4 +288,43 @@ export function unlocksAfter(
       ),
     )
     .filter((dep) => !isNodeMastered(dep, itemStates, now))
+}
+
+/**
+ * The proactive warning the product always wanted but never built: which nodes
+ * will drop *below* mastery within the next `horizonDays` days if the user
+ * practices nothing during that window. "This is about to fall — practice it."
+ *
+ * The signature is fixed by spec; the semantics below are decisions the spec
+ * deliberately leaves open. Each is pinned by a test (see nodes-at-risk.test.ts):
+ *
+ * - Risk is measured on the node's decay-adjusted mastery *average*, the same
+ *   quantity that defines mastery — not on the first item to dip. A node is at
+ *   risk when its average crosses below the target, not when one item does.
+ * - Only nodes currently at or above the target are candidates. A node already
+ *   below the target hasn't "about to fall" — it already fell (the map marks it
+ *   rusty); it is excluded. Never-practiced nodes have a 0 average and are
+ *   excluded by the same rule.
+ * - Maintenance nodes get no special treatment: they are above the target, so
+ *   they are evaluated by the same average-crossing rule as everyone else.
+ * - A node with no items has no average to decay and is excluded.
+ * - The horizon is inclusive: a node whose average crosses on exactly day
+ *   `horizonDays` is included, because it is evaluated at `now + horizonDays`
+ *   and its decayed average there is already below the target.
+ *
+ * Pure and deterministic: `now` and `horizonDays` are the only clock inputs.
+ */
+export function nodesAtRisk(
+  graph: SkillGraph,
+  itemStates: Map<string, UserItemState>,
+  now: number,
+  horizonDays: number,
+): SkillNode[] {
+  const horizon = now + horizonDays * DAY_MS
+  return graph.nodes.filter((node) => {
+    if (node.items.length === 0) return false
+    const masteredNow = nodeMasteryAvg(node, itemStates, now) >= ITEM_MASTERY_TARGET
+    if (!masteredNow) return false
+    return nodeMasteryAvg(node, itemStates, horizon) < ITEM_MASTERY_TARGET
+  })
 }
