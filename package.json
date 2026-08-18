@@ -1,0 +1,14 @@
+{
+  "name": "cancha-total",
+  "version": "1.0.0",
+  "description": "Sistema de reservas para Cancha Total F5",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "datos": "node datos.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2"
+  }
+}
