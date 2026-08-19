@@ -67,6 +67,63 @@ test('recorrido completo: cartelera -> mapa -> reservar -> comprar -> confirmaci
   }
 });
 
+test('elegir tarifa estudiante en la página de compra cobra 25% de descuento', async () => {
+  const { servidor, url, db } = iniciarServidor();
+  try {
+    const butaca = db.prepare("SELECT id FROM BUTACA WHERE fila='A' AND numero=1").get();
+    const reservar = await fetch(`${url}/funciones/1/butacas/${butaca.id}/reservar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'nombre=Ana&email=ana%40example.com',
+      redirect: 'manual',
+    });
+    const destino = reservar.headers.get('location');
+
+    const paginaEstudiante = await fetch(`${url}${destino}&tarifa=estudiante`);
+    const htmlEstudiante = await paginaEstudiante.text();
+    assert.match(htmlEstudiante, /2250/);
+
+    const confirmar = await fetch(`${url}/funciones/1/butacas/${butaca.id}/confirmar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'nombre=Ana&email=ana%40example.com&tarifa=estudiante',
+    });
+    assert.equal(confirmar.status, 200);
+
+    const compra = db.prepare('SELECT * FROM COMPRA WHERE funcion_id = 1').get();
+    assert.equal(compra.tarifa, 'estudiante');
+    assert.equal(compra.descuento_aplicado, 25);
+    assert.equal(compra.monto_final, 2250);
+  } finally {
+    servidor.close();
+  }
+});
+
+test('una función de miércoles cobra la mitad del precio aunque se elija tarifa base', async () => {
+  const { servidor, url, db } = iniciarServidor();
+  try {
+    const butaca = db.prepare("SELECT id FROM BUTACA WHERE fila='A' AND numero=1").get();
+    await fetch(`${url}/funciones/2/butacas/${butaca.id}/reservar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'nombre=Ana&email=ana%40example.com',
+    });
+
+    const confirmar = await fetch(`${url}/funciones/2/butacas/${butaca.id}/confirmar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'nombre=Ana&email=ana%40example.com&tarifa=base',
+    });
+    assert.equal(confirmar.status, 200);
+
+    const compra = db.prepare('SELECT * FROM COMPRA WHERE funcion_id = 2').get();
+    assert.equal(compra.descuento_aplicado, 50);
+    assert.equal(compra.monto_final, 1500);
+  } finally {
+    servidor.close();
+  }
+});
+
 test('dos solicitudes HTTP concurrentes sobre el mismo asiento: solo una reserva, la otra recibe 409', async () => {
   const { servidor, url, db, logPath } = iniciarServidor();
   try {

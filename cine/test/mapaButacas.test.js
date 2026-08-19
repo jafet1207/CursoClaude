@@ -89,7 +89,7 @@ test('mapaDeFuncion devuelve todas las butacas de la sala con su estado', () => 
 
   const mapa = mapaDeFuncion(db, 1);
 
-  assert.equal(mapa.length, 2);
+  assert.equal(mapa.length, 3);
   const asiento1 = mapa.find((b) => b.fila === 'A' && b.numero === 1);
   const asiento2 = mapa.find((b) => b.fila === 'A' && b.numero === 2);
   assert.equal(asiento1.estado, 'en_espera');

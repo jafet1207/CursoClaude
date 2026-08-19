@@ -7,9 +7,13 @@ function crearDbDePrueba() {
   ).run('Sala Grande', 120, 10, 12);
   db.prepare('INSERT INTO BUTACA (sala_id, fila, numero) VALUES (1, ?, ?)').run('A', 1);
   db.prepare('INSERT INTO BUTACA (sala_id, fila, numero) VALUES (1, ?, ?)').run('A', 2);
+  db.prepare('INSERT INTO BUTACA (sala_id, fila, numero) VALUES (1, ?, ?)').run('A', 3);
   db.prepare(
     'INSERT INTO FUNCION (id, pelicula_nombre, sala_id, fecha_hora, precio_base) VALUES (1, ?, 1, ?, ?)'
-  ).run('Película de prueba', '2026-08-20T18:00:00', 3000);
+  ).run('Película de prueba', '2026-08-20T18:00:00', 3000); // jueves
+  db.prepare(
+    'INSERT INTO FUNCION (id, pelicula_nombre, sala_id, fecha_hora, precio_base) VALUES (2, ?, 1, ?, ?)'
+  ).run('Función de miércoles', '2026-08-19T18:00:00', 3000); // miércoles
   return db;
 }
 

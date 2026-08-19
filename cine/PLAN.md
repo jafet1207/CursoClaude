@@ -25,7 +25,7 @@
 |---|---|---|---|
 | 1 | Compra online — recorrido base | — | cerrada |
 | 2 | Integridad de asientos | 1 | cerrada |
-| 3 | Descuentos automáticos | 1 | pendiente |
+| 3 | Descuentos automáticos | 1 | cerrada |
 | 4 | Compra en taquilla | 1 | pendiente |
 | 5 | Consulta y refund individual | 1, 4 | pendiente |
 | 6 | Refund por función | 1 | pendiente |
@@ -129,7 +129,14 @@
 - Produce:
   - `calcularPrecio(funcion, tarifaSolicitada)` → `{precio_base, descuento_aplicado, monto_final}`, aplicando la regla de mejor descuento. Reemplaza el cálculo simplificado de tarifa base de la Pieza 1 dentro de `confirmarCompra`. Usada por Piezas 4 y 8.
 
-**Evidencia**
+**Evidencia** *(cerrada 2026-08-18)*
+- Suite de pruebas (`npm test`): 25 casos en verde (6 nuevos sobre los de la Pieza 2) — cubren `calcularPrecio` para tarifa base en miércoles (50%), estudiante fuera de miércoles (25%), mejor descuento (estudiante en miércoles → 50%, no se suman), tarifa desconocida rechazada, y dos casos HTTP de extremo a extremo (selector de tarifa en la página de compra, y una función de miércoles cobrando la mitad aunque se elija tarifa base).
+- Se agregó una segunda función de prueba en miércoles al helper de pruebas para poder ejercitar RN-2 y RN-4 de forma determinística (sin depender de la fecha real del sistema).
+- La vista de compra ahora deja elegir la tarifa (select que recarga la página vía GET) y muestra el precio final recalculado con el descuento aplicado antes de confirmar.
+- Comprobación manual sobre la app real (datos sembrados con `npm run seed`, función 1 cae en miércoles):
+  1. Tarifa base en la función de miércoles → monto final ₡1500 (mitad de ₡3000).
+  2. Tarifa estudiante en una función que no es miércoles (₡2500 base) → monto final ₡1875 (25% de descuento).
+  3. Tarifa estudiante en la función de miércoles → monto final ₡1500 (mejor descuento: 50%, no 62.5% combinado).
 
 ---
 

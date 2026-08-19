@@ -46,9 +46,10 @@ function crearApp({ db, logPath }) {
     const butaca = db.prepare('SELECT * FROM BUTACA WHERE id = ?').get(butacaId);
     if (!funcion || !butaca) return res.status(404).send('No encontrado.');
 
+    const tarifa = req.query.tarifa || 'base';
     const precio = calcularPrecio({
       precioBase: funcion.precio_base,
-      tarifa: 'base',
+      tarifa,
       fechaHoraFuncion: funcion.fecha_hora,
     });
 
@@ -56,6 +57,7 @@ function crearApp({ db, logPath }) {
       funcion,
       butaca,
       precio,
+      tarifa,
       nombre: req.query.nombre || '',
       email: req.query.email || '',
     });

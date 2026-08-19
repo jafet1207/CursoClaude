@@ -1,13 +1,28 @@
+const MIERCOLES = 3; // Date.prototype.getDay()
+const DESCUENTO_MIERCOLES = 50;
+const DESCUENTO_ESTUDIANTE = 25;
+const TARIFAS_VALIDAS = ['base', 'estudiante'];
+
+function esMiercoles(fechaHoraFuncion) {
+  return new Date(fechaHoraFuncion).getDay() === MIERCOLES;
+}
+
 /**
- * Pieza 1: solo tarifa base. RN-2 (miércoles), RN-3 (estudiante) y RN-4 (mejor
- * descuento) se implementan en la Pieza 3 sin cambiar esta firma.
+ * RN-2 (miércoles), RN-3 (estudiante) y RN-4 (mejor descuento, no se combinan).
  */
 function calcularPrecio({ precioBase, tarifa, fechaHoraFuncion }) {
-  if (tarifa !== 'base') {
-    throw new Error(`Tarifa "${tarifa}" aún no soportada (llega en la Pieza 3).`);
+  if (!TARIFAS_VALIDAS.includes(tarifa)) {
+    throw new Error(`Tarifa "${tarifa}" no reconocida.`);
   }
 
-  return { precio_base: precioBase, descuento_aplicado: 0, monto_final: precioBase };
+  const descuentosAplicables = [0];
+  if (esMiercoles(fechaHoraFuncion)) descuentosAplicables.push(DESCUENTO_MIERCOLES);
+  if (tarifa === 'estudiante') descuentosAplicables.push(DESCUENTO_ESTUDIANTE);
+
+  const descuentoAplicado = Math.max(...descuentosAplicables);
+  const montoFinal = precioBase * (1 - descuentoAplicado / 100);
+
+  return { precio_base: precioBase, descuento_aplicado: descuentoAplicado, monto_final: montoFinal };
 }
 
 module.exports = { calcularPrecio };

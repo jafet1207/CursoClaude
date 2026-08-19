@@ -10,12 +10,27 @@
   <p><a href="/funciones/<%= funcion.id %>">&larr; Volver al mapa de butacas</a></p>
   <h1><%= funcion.pelicula_nombre %></h1>
   <p>Asiento <%= butaca.fila %><%= butaca.numero %> — <%= funcion.fecha_hora %></p>
-  <p>Precio final: <strong>₡<%= precio.monto_final %></strong></p>
+
+  <form method="get" action="/funciones/<%= funcion.id %>/butacas/<%= butaca.id %>/comprar">
+    <input type="hidden" name="nombre" value="<%= nombre %>" />
+    <input type="hidden" name="email" value="<%= email %>" />
+    <label>
+      Tarifa:
+      <select name="tarifa" onchange="this.form.submit()">
+        <option value="base" <%= tarifa === 'base' ? 'selected' : '' %>>Base</option>
+        <option value="estudiante" <%= tarifa === 'estudiante' ? 'selected' : '' %>>Estudiante</option>
+      </select>
+    </label>
+  </form>
+
+  <p>Precio final: <strong>₡<%= precio.monto_final %></strong>
+    <% if (precio.descuento_aplicado > 0) { %>(<%= precio.descuento_aplicado %>% de descuento)<% } %>
+  </p>
 
   <form method="post" action="/funciones/<%= funcion.id %>/butacas/<%= butaca.id %>/confirmar">
     <input type="hidden" name="nombre" value="<%= nombre %>" />
     <input type="hidden" name="email" value="<%= email %>" />
-    <input type="hidden" name="tarifa" value="base" />
+    <input type="hidden" name="tarifa" value="<%= tarifa %>" />
     <button type="submit">Confirmar y pagar (simulado)</button>
   </form>
 </body>

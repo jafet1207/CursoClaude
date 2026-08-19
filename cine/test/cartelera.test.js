@@ -8,9 +8,9 @@ test('listarFunciones devuelve las funciones sembradas con su sala', () => {
 
   const funciones = listarFunciones(db);
 
-  assert.equal(funciones.length, 1);
-  assert.equal(funciones[0].pelicula_nombre, 'Película de prueba');
+  assert.equal(funciones.length, 2);
   assert.equal(funciones[0].sala_nombre, 'Sala Grande');
+  assert.ok(funciones.some((f) => f.pelicula_nombre === 'Película de prueba'));
 });
 
 test('obtenerFuncion devuelve null si la función no existe', () => {
