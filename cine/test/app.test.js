@@ -67,6 +67,37 @@ test('recorrido completo: cartelera -> mapa -> reservar -> comprar -> confirmaci
   }
 });
 
+test('dos solicitudes HTTP concurrentes sobre el mismo asiento: solo una reserva, la otra recibe 409', async () => {
+  const { servidor, url, db, logPath } = iniciarServidor();
+  try {
+    const butaca = db.prepare("SELECT id FROM BUTACA WHERE fila='A' AND numero=1").get();
+    const cuerpo = (email) => `nombre=Cliente&email=${email}`;
+
+    const [respuestaA, respuestaB] = await Promise.all([
+      fetch(`${url}/funciones/1/butacas/${butaca.id}/reservar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: cuerpo('a%40example.com'),
+        redirect: 'manual',
+      }),
+      fetch(`${url}/funciones/1/butacas/${butaca.id}/reservar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: cuerpo('b%40example.com'),
+        redirect: 'manual',
+      }),
+    ]);
+
+    const estados = [respuestaA.status, respuestaB.status].sort();
+    assert.deepEqual(estados, [302, 409]);
+
+    const reservas = db.prepare('SELECT * FROM RESERVA_ASIENTO WHERE funcion_id = 1 AND butaca_id = ?').all(butaca.id);
+    assert.equal(reservas.length, 1);
+  } finally {
+    servidor.close();
+  }
+});
+
 test('reservar un asiento ya vendido responde con error explícito', async () => {
   const { servidor, url, db, logPath } = iniciarServidor();
   try {

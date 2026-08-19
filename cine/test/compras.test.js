@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { crearDbDePrueba } = require('./helpers');
+const { crearDbDePrueba, insertarReservaVencida } = require('./helpers');
 const { reservarAsiento, estadoAsiento } = require('../src/mapaButacas');
 const { confirmarCompra, listarComprasPorFuncion } = require('../src/compras');
 
@@ -60,6 +60,29 @@ test('confirmar una compra sin una reserva vigente falla explícitamente', () =>
       }),
     /no hay una reserva vigente/i
   );
+});
+
+test('confirmar sobre una reserva expirada es rechazado con el mensaje específico y el asiento queda disponible', () => {
+  const db = crearDbDePrueba();
+  const logPath = logDePrueba();
+  const butaca = db.prepare("SELECT id FROM BUTACA WHERE fila='A' AND numero=1").get();
+  insertarReservaVencida(db, { funcionId: 1, butacaId: butaca.id, clienteEmail: 'ana@example.com', minutosAtras: 11 });
+
+  assert.throws(
+    () =>
+      confirmarCompra(db, {
+        funcionId: 1,
+        butacaId: butaca.id,
+        tarifa: 'base',
+        clienteNombre: 'Ana Pérez',
+        clienteEmail: 'ana@example.com',
+        canal: 'online',
+        logPath,
+      }),
+    /ese asiento ya no está reservado\. selecciona otro\./i
+  );
+
+  assert.equal(estadoAsiento(db, 1, butaca.id), 'disponible');
 });
 
 test('listarComprasPorFuncion devuelve todas las compras de esa función', () => {

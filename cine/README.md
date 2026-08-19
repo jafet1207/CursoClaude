@@ -26,6 +26,16 @@ Esto borra `data/cine.db` si existe y la vuelve a crear con:
 
 El log de notificaciones (confirmaciones de compra simuladas) se escribe en `data/notificaciones.log`.
 
+### Probar la expiración de reservas sin esperar 10 minutos reales
+
+La reserva de un asiento (RN-8) expira a los 10 minutos por defecto. Para demostrarlo o probarlo manualmente sin esperar ese tiempo real, arrancá la app con el umbral acortado:
+
+```bash
+RESERVA_EXPIRACION_MS=5000 npm start
+```
+
+Con eso, una reserva sin confirmar expira a los 5 segundos en lugar de 10 minutos.
+
 ## Cómo correr las pruebas
 
 ```bash

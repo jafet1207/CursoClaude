@@ -24,7 +24,7 @@
 | # | Pieza | Depende de | Estado |
 |---|---|---|---|
 | 1 | Compra online — recorrido base | — | cerrada |
-| 2 | Integridad de asientos | 1 | pendiente |
+| 2 | Integridad de asientos | 1 | cerrada |
 | 3 | Descuentos automáticos | 1 | pendiente |
 | 4 | Compra en taquilla | 1 | pendiente |
 | 5 | Consulta y refund individual | 1, 4 | pendiente |
@@ -97,7 +97,15 @@
   - Garantía de atomicidad: `reservarAsiento` y `confirmarCompra` son seguras bajo llamadas concurrentes sobre el mismo asiento — comportamiento del que dependen todas las piezas siguientes, sin una función nueva expuesta.
   - Mecanismo de expiración automática de reservas vencidas, activo en background o verificado de forma perezosa en cada lectura de estado — las piezas siguientes lo dan por hecho al leer el estado de un asiento.
 
-**Evidencia**
+**Evidencia** *(cerrada 2026-08-18)*
+- Suite de pruebas (`npm test`): 19 casos en verde (6 nuevos sobre los de la Pieza 1) — cubren reserva vigente vs. expirada, liberación automática al leer el estado, poder reservar un asiento cuya reserva anterior expiró, dos reservas casi simultáneas sobre el mismo asiento (una éxito, una rechazo, y una sola fila en `RESERVA_ASIENTO`), confirmar sobre una reserva expirada (mensaje específico, asiento vuelve a disponible), y el mismo caso de concurrencia a nivel HTTP con dos `fetch` en paralelo.
+- El mecanismo de expiración se implementó por **lectura perezosa**: `estadoAsiento` descarta cualquier reserva cuyo `reservado_en` supere el umbral (10 min por defecto, configurable con `RESERVA_EXPIRACION_MS` para pruebas y demostración) — sin job en background, tal como el plan permite.
+- Comprobación manual sobre la app real (`RESERVA_EXPIRACION_MS=2000 npm start`):
+  1. Reservar un asiento → `302`, aparece "en_espera" en el mapa.
+  2. Otro cliente intenta reservar el mismo asiento mientras está en espera → `409 Ese asiento ya no está disponible.`
+  3. Esperar a que expire (2.5s) → el mapa muestra "disponible" **sin ninguna acción manual**.
+  4. Confirmar la compra sobre la reserva ya expirada → `409 Ese asiento ya no está reservado. Selecciona otro.`
+  5. Un cliente nuevo reserva el mismo asiento tras la expiración → `302` (éxito).
 
 ---
 

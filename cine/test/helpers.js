@@ -13,4 +13,11 @@ function crearDbDePrueba() {
   return db;
 }
 
-module.exports = { crearDbDePrueba };
+function insertarReservaVencida(db, { funcionId, butacaId, clienteEmail, minutosAtras }) {
+  const reservadoEn = new Date(Date.now() - minutosAtras * 60 * 1000).toISOString();
+  db.prepare(
+    'INSERT INTO RESERVA_ASIENTO (funcion_id, butaca_id, cliente_email, reservado_en, estado) VALUES (?, ?, ?, ?, ?)'
+  ).run(funcionId, butacaId, clienteEmail, reservadoEn, 'en_espera');
+}
+
+module.exports = { crearDbDePrueba, insertarReservaVencida };

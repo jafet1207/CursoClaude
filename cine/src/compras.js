@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 const { calcularPrecio } = require('./tarifas');
 const { registrarConfirmacion } = require('./notificaciones');
+const { estaVencida } = require('./mapaButacas');
 
 const ALFABETO_CODIGO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -16,11 +17,14 @@ function generarCodigoConfirmacion(longitud = 12) {
 function confirmarCompra(db, { funcionId, butacaId, tarifa, clienteNombre, clienteEmail, canal, logPath }) {
   const reserva = db
     .prepare(
-      'SELECT * FROM RESERVA_ASIENTO WHERE funcion_id = ? AND butaca_id = ? AND cliente_email = ?'
+      'SELECT * FROM RESERVA_ASIENTO WHERE funcion_id = ? AND butaca_id = ? AND cliente_email = ? ORDER BY reservado_en DESC LIMIT 1'
     )
     .get(funcionId, butacaId, clienteEmail);
   if (!reserva) {
     throw new Error('No hay una reserva vigente para este asiento.');
+  }
+  if (estaVencida(reserva)) {
+    throw new Error('Ese asiento ya no está reservado. Selecciona otro.');
   }
 
   const funcion = db.prepare('SELECT * FROM FUNCION WHERE id = ?').get(funcionId);

@@ -1,13 +1,33 @@
+const DIEZ_MINUTOS_MS = 10 * 60 * 1000;
+
+// Configurable por RESERVA_EXPIRACION_MS para poder demostrar la expiración
+// manualmente sin esperar 10 minutos reales (ver README.md).
+function expiracionMs() {
+  return Number(process.env.RESERVA_EXPIRACION_MS) || DIEZ_MINUTOS_MS;
+}
+
+function estaVencida(reserva) {
+  return Date.now() - new Date(reserva.reservado_en).getTime() > expiracionMs();
+}
+
+function reservaVigente(db, funcionId, butacaId) {
+  const reserva = db
+    .prepare(
+      'SELECT * FROM RESERVA_ASIENTO WHERE funcion_id = ? AND butaca_id = ? ORDER BY reservado_en DESC LIMIT 1'
+    )
+    .get(funcionId, butacaId);
+  if (!reserva) return null;
+
+  return estaVencida(reserva) ? null : reserva;
+}
+
 function estadoAsiento(db, funcionId, butacaId) {
   const vendido = db
     .prepare('SELECT 1 FROM COMPRA WHERE funcion_id = ? AND butaca_id = ? AND refundado = 0')
     .get(funcionId, butacaId);
   if (vendido) return 'vendido';
 
-  const enEspera = db
-    .prepare('SELECT 1 FROM RESERVA_ASIENTO WHERE funcion_id = ? AND butaca_id = ?')
-    .get(funcionId, butacaId);
-  if (enEspera) return 'en_espera';
+  if (reservaVigente(db, funcionId, butacaId)) return 'en_espera';
 
   return 'disponible';
 }
@@ -34,4 +54,4 @@ function mapaDeFuncion(db, funcionId) {
   }));
 }
 
-module.exports = { estadoAsiento, reservarAsiento, mapaDeFuncion };
+module.exports = { estadoAsiento, reservarAsiento, mapaDeFuncion, reservaVigente, estaVencida };
