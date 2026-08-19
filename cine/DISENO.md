@@ -290,12 +290,18 @@ Reporte distribuidor:
 | Botón "Mostrar mapa" en UI: resolución | (1) Mapa interactivo de grid (cliqueable). (2) Lista de asientos (texto). | (1) Mapa visual de grid. | RF-2 especifica "mapa interactivo", mejor UX que lista. |
 | Validación de email en compra | (1) Email real (bounce check). (2) Email valido (regex). (3) Email opcional, solo nombre. | (2) Validación regex de formato; suficiente para MVP. | Evita bounces, no requiere API externa. |
 
+### Decisión: Stack tecnológico
+
+**Por qué es una decisión mayor:** Determina en qué lenguaje, framework y motor de base de datos se construye el prototipo; afecta directamente cómo se implementan las transacciones atómicas del Mapa de Butacas.
+
+**Elección:** Node.js + Express (backend), SQLite (persistencia), renderizado server-side con EJS/HTML simple para las vistas (mapa de butacas, cartelera, formularios de compra y taquilla). Cumple las restricciones ya establecidas: SQLite ofrece transacciones ACID suficientes para el volumen esperado (RNF-1: ~20-50 compradores simultáneos), y evita la complejidad de un servidor de BD separado. La UI es una única web responsive (RF-2: mapa compartido entre cliente y taquillero), sin app nativa ni distinción de plataforma.
+
+**Razón:** Bajo costo de infraestructura, stack simple para un prototipo de este alcance, y JavaScript en front y back reduce la superficie de herramientas distintas.
+
 ## Decisiones dejadas abiertas
 
 | Qué no se decidió | Quién lo decide y cuándo |
 |---|---|
-| Tecnología: lenguaje, framework, BD (MySQL vs. PostgreSQL vs. SQLite) | Implementación. Debe cumplir: transacciones ACID, acceso concurrente, precio bajo. |
-| UI: web responsivo vs. nativa mobile | Implementación. Web responsive es más rápido (no requiere appstore). |
 | Despliegue: cloud (AWS, GCP, Heroku) vs. on-premise en máquina del cine | Operación/dueña. Depende de capacidad técnica disponible. |
 | Autenticación de personal de taquilla (login) | Implementación. ¿Usuarios con contraseña, tokens, acceso público? Fuera de alcance actual. |
 
