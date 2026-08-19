@@ -1,0 +1,30 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.mapa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.butaca {
+  border: 1px solid #999;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: 140px;
+  text-align: center;
+}
+
+.butaca--disponible { background: #e6ffed; }
+.butaca--en_espera { background: #fff8e1; }
+.butaca--vendido { background: #ffe6e6; }
+
+.butaca__codigo { display: block; font-weight: bold; }
+.butaca__estado { display: block; font-size: 0.8rem; color: #555; }
+
+.lista-funciones { list-style: none; padding: 0; }
+.lista-funciones li { margin-bottom: 0.5rem; }

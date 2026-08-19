@@ -23,7 +23,7 @@
 
 | # | Pieza | Depende de | Estado |
 |---|---|---|---|
-| 1 | Compra online — recorrido base | — | pendiente |
+| 1 | Compra online — recorrido base | — | cerrada |
 | 2 | Integridad de asientos | 1 | pendiente |
 | 3 | Descuentos automáticos | 1 | pendiente |
 | 4 | Compra en taquilla | 1 | pendiente |
@@ -64,7 +64,16 @@
   - `listarComprasPorFuncion(funcion_id)` → todas las compras (refundadas o no) de una función. Usada por Pieza 6.
   - Formato del código de confirmación: 12+ caracteres alfanuméricos, generado en esta pieza y reutilizado sin cambios por el resto.
 
-**Evidencia**
+**Evidencia** *(cerrada 2026-08-18)*
+- Suite de pruebas (`npm test`, Node test runner): 13 casos, todos en verde — cubren `estadoAsiento`, `reservarAsiento`, `mapaDeFuncion`, `calcularPrecio` (tarifa base), `registrarConfirmacion`, `confirmarCompra`, `listarComprasPorFuncion`, `listarFunciones`/`obtenerFuncion`, y el recorrido HTTP completo (cartelera → mapa → reservar → comprar → confirmar).
+- TDD detectó y corrigió un defecto real antes de cerrar la pieza: el generador de código usaba `base64url`, que incluye `-` y `_` (no alfanumérico, viola CA-4); se reemplazó por un generador con alfabeto estrictamente A-Za-z0-9.
+- Comprobación manual sobre la app real (`npm start`, datos sembrados con `npm run seed`):
+  - Cartelera muestra las 3 funciones de prueba.
+  - Mapa de butacas de una función muestra todos los asientos "disponible".
+  - Clic en un asiento (vía formulario) crea la reserva real; verificado directamente contra `RESERVA_ASIENTO` en `data/cine.db`.
+  - Confirmar la compra devuelve código de 12 caracteres alfanuméricos (ej. `vc8JyU7p9UZR`); el asiento pasa a "vendido"; fila en `COMPRA` con `canal='online'` y `monto_final=3000` (precio base de la función).
+  - **Persistencia real**: se detuvo el proceso (`taskkill`) y se volvió a levantar (`node src/server.js`) sin volver a sembrar — el asiento seguía "vendido" y la compra seguía en `COMPRA`.
+  - `data/notificaciones.log` contenía la línea con código, nombre, asiento, función y precio de esa compra.
 
 ---
 

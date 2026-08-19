@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= funcion.pelicula_nombre %> — Mapa de butacas</title>
+  <link rel="stylesheet" href="/estilos.css" />
+</head>
+<body>
+  <p><a href="/">&larr; Volver a la cartelera</a></p>
+  <h1><%= funcion.pelicula_nombre %></h1>
+  <p><%= funcion.fecha_hora %> — precio base ₡<%= funcion.precio_base %></p>
+
+  <div class="mapa">
+    <% mapa.forEach(function (butaca) { %>
+      <div class="butaca butaca--<%= butaca.estado %>">
+        <span class="butaca__codigo"><%= butaca.fila %><%= butaca.numero %></span>
+        <span class="butaca__estado"><%= butaca.estado %></span>
+        <% if (butaca.estado === 'disponible') { %>
+          <form method="post" action="/funciones/<%= funcion.id %>/butacas/<%= butaca.id %>/reservar">
+            <input type="text" name="nombre" placeholder="Nombre" required />
+            <input type="email" name="email" placeholder="Email" required />
+            <button type="submit">Seleccionar</button>
+          </form>
+        <% } %>
+      </div>
+    <% }); %>
+  </div>
+</body>
+</html>

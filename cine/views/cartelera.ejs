@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cine Variedades — Cartelera</title>
+  <link rel="stylesheet" href="/estilos.css" />
+</head>
+<body>
+  <h1>Cartelera de la semana</h1>
+  <ul class="lista-funciones">
+    <% funciones.forEach(function (funcion) { %>
+      <li>
+        <a href="/funciones/<%= funcion.id %>">
+          <strong><%= funcion.pelicula_nombre %></strong>
+          — <%= funcion.sala_nombre %> — <%= funcion.fecha_hora %> — ₡<%= funcion.precio_base %>
+        </a>
+      </li>
+    <% }); %>
+  </ul>
+</body>
+</html>

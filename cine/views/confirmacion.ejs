@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Compra confirmada</title>
+  <link rel="stylesheet" href="/estilos.css" />
+</head>
+<body>
+  <h1>¡Compra confirmada!</h1>
+  <p>Código de confirmación: <strong><%= compra.codigo %></strong></p>
+  <p><%= funcion.pelicula_nombre %> — <%= funcion.fecha_hora %></p>
+  <p>Asiento <%= butaca.fila %><%= butaca.numero %></p>
+  <p>Monto pagado: ₡<%= compra.monto_final %></p>
+  <p><a href="/">Volver a la cartelera</a></p>
+</body>
+</html>

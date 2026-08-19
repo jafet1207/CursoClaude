@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Confirmar compra</title>
+  <link rel="stylesheet" href="/estilos.css" />
+</head>
+<body>
+  <p><a href="/funciones/<%= funcion.id %>">&larr; Volver al mapa de butacas</a></p>
+  <h1><%= funcion.pelicula_nombre %></h1>
+  <p>Asiento <%= butaca.fila %><%= butaca.numero %> — <%= funcion.fecha_hora %></p>
+  <p>Precio final: <strong>₡<%= precio.monto_final %></strong></p>
+
+  <form method="post" action="/funciones/<%= funcion.id %>/butacas/<%= butaca.id %>/confirmar">
+    <input type="hidden" name="nombre" value="<%= nombre %>" />
+    <input type="hidden" name="email" value="<%= email %>" />
+    <input type="hidden" name="tarifa" value="base" />
+    <button type="submit">Confirmar y pagar (simulado)</button>
+  </form>
+</body>
+</html>
