@@ -294,7 +294,7 @@ test('5.1 — no cuenta reservas canceladas para el descuento de cliente frecuen
 // Cambio que haría fallar esta prueba (una vez cerrado el hallazgo): que la cancelación
 // vuelva a decidirse comparando solo fechas, sin la hora exacta del bloque.
 // =========================================================================================
-test('6.1 — no permite cancelar si faltan menos de 24 horas exactas para el bloque', { todo: 'HALLAZGO-4: ver HALLAZGOS.md' }, async () => {
+test('6.1 — no permite cancelar si faltan menos de 24 horas exactas para el bloque', async () => {
   // 2026-03-11 11:00 está a 23h de 2026-03-10 12:00.
   const { ok, id } = await crearReserva({
     cancha: 1, fecha: '2026-03-11', hora: 11, cliente: 'Cliente Doce', telefono: '80000012',
