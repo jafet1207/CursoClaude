@@ -71,6 +71,11 @@ function crearReserva(datos) {
   return info.lastInsertRowid;
 }
 
+// Regla de las 24 horas: la reserva tiene que ser para una fecha futura.
+function puedeCancelarse(fechaReserva, hoyFecha) {
+  return fechaReserva > hoyFecha;
+}
+
 function hoyISO() {
   const d = new Date();
   const mes = String(d.getMonth() + 1).padStart(2, '0');
@@ -325,9 +330,7 @@ app.post('/reservas/:id/cancelar', (req, res) => {
     return res.send(layout('Error', `<div class="error">La reserva #${id} ya estaba cancelada.</div><p><a href="/dia/${reserva.fecha}">Volver</a></p>`));
   }
 
-  // Regla de las 24 horas: la reserva tiene que ser para una fecha futura.
-  const hoyFecha = hoyISO();
-  if (reserva.fecha > hoyFecha) {
+  if (puedeCancelarse(reserva.fecha, hoyISO())) {
     db.prepare(`UPDATE reservas SET estado = 'cancelada' WHERE id = ?`).run(id);
     return res.send(layout('Cancelada', `<div class="ok">Reserva #${id} cancelada.</div><p><a href="/dia/${reserva.fecha}">Volver</a></p>`));
   } else {
