@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "datos": "node datos.js"
+    "datos": "node datos.js",
+    "test": "node --test test/reservas.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
