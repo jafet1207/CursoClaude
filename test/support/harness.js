@@ -20,14 +20,23 @@ const PROJECT_ROOT = path.join(__dirname, '..', '..');
 const PORT = 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 const CLOCK_PRELOAD = path.join(__dirname, 'fixed-clock.js');
+// El proceso se ejecuta desde un archivo recién creado en %TEMP%. En Windows, la
+// primera inspección del archivo y del addon nativo puede demorarse por el antivirus.
+const STARTUP_TIMEOUT_MS = 15000;
 
 let child = null;
 let tempDir = null;
 
-async function waitForServer(url, timeoutMs) {
+async function waitForServer(url, timeoutMs, serverProcess) {
   const start = Date.now();
   let lastError = null;
   while (Date.now() - start < timeoutMs) {
+    if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+      throw new Error(
+        `El servidor terminó antes de responder (código ${serverProcess.exitCode}, ` +
+        `señal ${serverProcess.signalCode})`
+      );
+    }
     try {
       const res = await fetch(url);
       // Cualquier respuesta HTTP (incluso un error de aplicación) confirma que el
@@ -38,7 +47,10 @@ async function waitForServer(url, timeoutMs) {
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`El servidor no respondió en ${url} dentro de ${timeoutMs}ms: ${lastError}`);
+  const detalle = lastError && lastError.cause
+    ? `${lastError}; causa: ${lastError.cause}`
+    : lastError;
+  throw new Error(`El servidor no respondió en ${url} dentro de ${timeoutMs}ms: ${detalle}`);
 }
 
 async function startServer(mockNowISO) {
@@ -61,8 +73,12 @@ async function startServer(mockNowISO) {
   );
 
   let stderrOutput = '';
+  let stdoutOutput = '';
   child.stderr.on('data', (chunk) => {
     stderrOutput += chunk.toString();
+  });
+  child.stdout.on('data', (chunk) => {
+    stdoutOutput += chunk.toString();
   });
 
   child.on('exit', (code, signal) => {
@@ -73,10 +89,12 @@ async function startServer(mockNowISO) {
   });
 
   try {
-    await waitForServer(BASE_URL, 5000);
+    await waitForServer(BASE_URL, STARTUP_TIMEOUT_MS, child);
   } catch (err) {
     await stopServer();
-    throw new Error(`${err.message}\nstderr del servidor:\n${stderrOutput}`);
+    throw new Error(
+      `${err.message}\nstdout del servidor:\n${stdoutOutput}\nstderr del servidor:\n${stderrOutput}`
+    );
   }
 
   return {
