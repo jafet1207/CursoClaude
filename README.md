@@ -45,3 +45,16 @@ o, como puerta de un solo comando (0 si todo pasó, 2 si algo falló):
 ```
 ./verificar.sh
 ```
+
+## Integración continua
+
+`.github/workflows/ci.yml` corre `verificar.sh` en cada push y en cada pull request contra
+`main`, en un runner limpio de GitHub y sin credenciales de ningún servicio externo.
+
+- **Bloquea la fusión:** el job `Verificación` (la única puerta que existe hoy) — si falla,
+  no se puede fusionar el pull request, ni siquiera para quien administra el repositorio.
+- **Solo informa:** no hay, por ahora, ningún job informativo (que corra y reporte sin
+  bloquear el merge).
+
+`main` está protegida: no acepta commits directos, todo entra por pull request con la
+Verificación en verde.
