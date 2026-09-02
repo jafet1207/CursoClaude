@@ -1,17 +1,25 @@
 // Cancha Total F5 - sistema de reservas
-// Node + Express + better-sqlite3, vistas renderizadas en el servidor.
+// Node + Express + @libsql/client, vistas renderizadas en el servidor.
 
 const express = require('express');
-const Database = require('better-sqlite3');
+const { createClient } = require('@libsql/client');
 const path = require('path');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const db = new Database(path.join(__dirname, 'reservas.db'));
+// Sin TURSO_DATABASE_URL (desarrollo local, pruebas) usa un archivo SQLite local. En
+// producción, TURSO_DATABASE_URL apunta a la base de datos gestionada en Turso.
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL || `file:${path.join(__dirname, 'reservas.db')}`,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-db.exec(`
+// Las rutas quedan registradas de inmediato; cada request espera a que la tabla exista
+// antes de seguir (la promesa se resuelve una sola vez, así que solo la primera espera de
+// verdad).
+const listaParaServir = db.execute(`
   CREATE TABLE IF NOT EXISTS reservas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     cancha INTEGER NOT NULL,
@@ -24,6 +32,11 @@ db.exec(`
     creada_en TEXT NOT NULL DEFAULT (datetime('now'))
   )
 `);
+
+app.use(async (req, res, next) => {
+  await listaParaServir;
+  next();
+});
 
 // -----------------------------------------------------------------------
 // Función vieja que ya no usa nadie. Quedó del primer borrador cuando se
@@ -49,26 +62,30 @@ function formatColones(monto) {
   return '₡' + Math.round(monto).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-function checkDisponible(cancha, fecha, hora) {
-  const fila = db.prepare(
-    `SELECT COUNT(*) AS total FROM reservas
-     WHERE cancha = ? AND fecha = ? AND hora = ? AND estado = 'activa'`
-  ).get(cancha, fecha, hora);
-  return fila.total === 0;
+async function checkDisponible(cancha, fecha, hora) {
+  const resultado = await db.execute({
+    sql: `SELECT COUNT(*) AS total FROM reservas
+          WHERE cancha = ? AND fecha = ? AND hora = ? AND estado = 'activa'`,
+    args: [cancha, fecha, hora],
+  });
+  return resultado.rows[0].total === 0;
 }
 
-function getReservasDelDia(fecha) {
-  return db.prepare(
-    `SELECT * FROM reservas WHERE fecha = ? ORDER BY cancha, hora`
-  ).all(fecha);
+async function getReservasDelDia(fecha) {
+  const resultado = await db.execute({
+    sql: `SELECT * FROM reservas WHERE fecha = ? ORDER BY cancha, hora`,
+    args: [fecha],
+  });
+  return resultado.rows;
 }
 
-function crearReserva(datos) {
-  const info = db.prepare(
-    `INSERT INTO reservas (cancha, fecha, hora, cliente, telefono, precio, estado)
-     VALUES (?, ?, ?, ?, ?, ?, 'activa')`
-  ).run(datos.cancha, datos.fecha, datos.hora, datos.cliente, datos.telefono, datos.precio);
-  return info.lastInsertRowid;
+async function crearReserva(datos) {
+  const resultado = await db.execute({
+    sql: `INSERT INTO reservas (cancha, fecha, hora, cliente, telefono, precio, estado)
+          VALUES (?, ?, ?, ?, ?, ?, 'activa')`,
+    args: [datos.cancha, datos.fecha, datos.hora, datos.cliente, datos.telefono, datos.precio],
+  });
+  return Number(resultado.lastInsertRowid);
 }
 
 // Regla de las 24 horas: hace falta que falten 24 horas o más para la fecha y hora
@@ -124,7 +141,7 @@ ${contenido}
 
 // GET / -------------------------------------------------------------------
 // Disponibilidad del día para ambas canchas + formulario de reserva.
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   const fecha = req.query.fecha || hoyISO();
 
   let filasCancha1 = '';
@@ -138,10 +155,10 @@ app.get('/', (req, res) => {
       precio = 15000;
     }
 
-    const libre1 = checkDisponible(1, fecha, hora);
+    const libre1 = await checkDisponible(1, fecha, hora);
     filasCancha1 += `<tr><td>${hora}:00</td><td class="${libre1 ? 'libre' : 'ocupado'}">${libre1 ? 'Libre' : 'Ocupado'}</td><td>${formatColones(precio)}</td></tr>`;
 
-    const libre2 = checkDisponible(2, fecha, hora);
+    const libre2 = await checkDisponible(2, fecha, hora);
     filasCancha2 += `<tr><td>${hora}:00</td><td class="${libre2 ? 'libre' : 'ocupado'}">${libre2 ? 'Libre' : 'Ocupado'}</td><td>${formatColones(precio)}</td></tr>`;
   }
 
@@ -196,11 +213,11 @@ app.get('/', (req, res) => {
 });
 
 // GET /disponibilidad/cancha1 y /disponibilidad/cancha2 -------------------
-app.get('/disponibilidad/cancha1', (req, res) => {
+app.get('/disponibilidad/cancha1', async (req, res) => {
   const fecha = req.query.fecha || hoyISO();
   let filas = '';
   for (let hora = 8; hora <= 21; hora++) {
-    const libre = checkDisponible(1, fecha, hora);
+    const libre = await checkDisponible(1, fecha, hora);
     filas += `<tr><td>${hora}:00</td><td class="${libre ? 'libre' : 'ocupado'}">${libre ? 'Libre' : 'Ocupado'}</td></tr>`;
   }
   const contenido = `
@@ -214,11 +231,11 @@ app.get('/disponibilidad/cancha1', (req, res) => {
   res.send(layout('Cancha 1', contenido));
 });
 
-app.get('/disponibilidad/cancha2', (req, res) => {
+app.get('/disponibilidad/cancha2', async (req, res) => {
   const fecha = req.query.fecha || hoyISO();
   let filas = '';
   for (let hora = 8; hora <= 21; hora++) {
-    const libre = checkDisponible(2, fecha, hora);
+    const libre = await checkDisponible(2, fecha, hora);
     filas += `<tr><td>${hora}:00</td><td class="${libre ? 'libre' : 'ocupado'}">${libre ? 'Libre' : 'Ocupado'}</td></tr>`;
   }
   const contenido = `
@@ -233,7 +250,7 @@ app.get('/disponibilidad/cancha2', (req, res) => {
 });
 
 // POST /reservas ------------------------------------------------------------
-app.post('/reservas', (req, res) => {
+app.post('/reservas', async (req, res) => {
   // Paso 1: leer y normalizar lo que mandó el formulario.
   const canchaTexto = req.body.cancha;
   const fecha = req.body.fecha;
@@ -277,7 +294,7 @@ app.post('/reservas', (req, res) => {
   }
 
   // Paso 3: verificar que el bloque siga libre.
-  const disponible = checkDisponible(cancha, fecha, hora);
+  const disponible = await checkDisponible(cancha, fecha, hora);
   if (!disponible) {
     const contenidoOcupado = `<div class="error">Ese bloque ya está ocupado para la cancha ${cancha} el ${fecha} a las ${hora}:00.</div><p><a href="/">Volver</a></p>`;
     return res.send(layout('Error', contenidoOcupado));
@@ -294,19 +311,20 @@ app.post('/reservas', (req, res) => {
   // Paso 5: contar cuántas reservas lleva este teléfono en el mes para
   // saber si aplica el descuento de cliente frecuente.
   const mesFecha = fecha.slice(0, 7);
-  const conteoMes = db.prepare(
-    `SELECT COUNT(*) AS total FROM reservas
-     WHERE telefono = ? AND substr(fecha, 1, 7) = ?`
-  ).get(telefono, mesFecha);
+  const conteoMes = await db.execute({
+    sql: `SELECT COUNT(*) AS total FROM reservas
+          WHERE telefono = ? AND substr(fecha, 1, 7) = ?`,
+    args: [telefono, mesFecha],
+  });
 
-  const totalConEstaReserva = conteoMes.total + 1;
+  const totalConEstaReserva = conteoMes.rows[0].total + 1;
   const aplicaDescuento = totalConEstaReserva >= 4;
   if (aplicaDescuento) {
     precio = precio * 0.9;
   }
 
   // Paso 6: guardar la reserva.
-  const id = crearReserva({ cancha, fecha, hora, cliente, telefono, precio });
+  const id = await crearReserva({ cancha, fecha, hora, cliente, telefono, precio });
 
   // Paso 7: armar la página de confirmación.
   const notaDescuento = aplicaDescuento ? ' (con 10% de descuento por cliente frecuente)' : '';
@@ -322,9 +340,10 @@ app.post('/reservas', (req, res) => {
 });
 
 // POST /reservas/:id/cancelar ------------------------------------------------
-app.post('/reservas/:id/cancelar', (req, res) => {
+app.post('/reservas/:id/cancelar', async (req, res) => {
   const id = Number(req.params.id);
-  const reserva = db.prepare('SELECT * FROM reservas WHERE id = ?').get(id);
+  const resultado = await db.execute({ sql: 'SELECT * FROM reservas WHERE id = ?', args: [id] });
+  const reserva = resultado.rows[0];
 
   if (!reserva) {
     return res.send(layout('Error', `<div class="error">No existe la reserva #${id}.</div>`));
@@ -334,7 +353,7 @@ app.post('/reservas/:id/cancelar', (req, res) => {
   }
 
   if (puedeCancelarse(reserva.fecha, reserva.hora, new Date())) {
-    db.prepare(`UPDATE reservas SET estado = 'cancelada' WHERE id = ?`).run(id);
+    await db.execute({ sql: `UPDATE reservas SET estado = 'cancelada' WHERE id = ?`, args: [id] });
     return res.send(layout('Cancelada', `<div class="ok">Reserva #${id} cancelada.</div><p><a href="/dia/${reserva.fecha}">Volver</a></p>`));
   } else {
     return res.send(layout('Error', `<div class="error">La reserva #${id} no se puede cancelar: falta menos de 24 horas para el bloque.</div><p><a href="/dia/${reserva.fecha}">Volver</a></p>`));
@@ -342,9 +361,9 @@ app.post('/reservas/:id/cancelar', (req, res) => {
 });
 
 // GET /dia/:fecha -------------------------------------------------------------
-app.get('/dia/:fecha', (req, res) => {
+app.get('/dia/:fecha', async (req, res) => {
   const fecha = req.params.fecha;
-  const reservas = getReservasDelDia(fecha);
+  const reservas = await getReservasDelDia(fecha);
 
   const filas = reservas.map(r => {
     const claseFila = r.estado === 'cancelada' ? 'cancelada' : '';
