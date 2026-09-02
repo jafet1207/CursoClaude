@@ -13,9 +13,23 @@ instalación no necesita compilar nada.
 npm install
 ```
 
+## Almacenamiento
+
+El sistema usa `@libsql/client`. Sin configuración adicional (desarrollo local, pruebas)
+escribe en un archivo SQLite local (`reservas.db`, en la raíz del proyecto) — no depende de
+ningún servicio externo. En producción usa la base de datos gestionada de Turso.
+
+| Variable | Para qué | Dónde se carga en producción |
+|---|---|---|
+| `TURSO_DATABASE_URL` | Dirección de la base de datos (`libsql://...`) | Vercel → Project Settings → Environment Variables (Production) |
+| `TURSO_AUTH_TOKEN` | Token de autenticación de la base de datos | Vercel → Project Settings → Environment Variables (Production) |
+
+Ninguna credencial vive en el repositorio ni en el historial de commits.
+
 ## Datos de prueba
 
-Borra `reservas.db` (si existe) y la recrea con reservas de ejemplo:
+Borra `reservas.db` (si existe) y la recrea con reservas de ejemplo. Si `TURSO_DATABASE_URL`
+está definida, siembra esa base remota en lugar del archivo local:
 
 ```
 npm run datos
@@ -58,3 +72,7 @@ o, como puerta de un solo comando (0 si todo pasó, 2 si algo falló):
 
 `main` está protegida: no acepta commits directos, todo entra por pull request con la
 Verificación en verde.
+
+## Producción
+
+La aplicación está publicada en Vercel: https://cancha-total-f5-rust.vercel.app
